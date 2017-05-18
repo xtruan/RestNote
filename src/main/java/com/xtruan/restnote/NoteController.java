@@ -5,33 +5,64 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import java.util.regex.Pattern;
+
+import java.util.regex.Matcher;
+
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/notes")
 public class NoteController {
 
     private final AtomicInteger counter = new AtomicInteger();
-    Map<Integer, Note> notes = Collections.synchronizedMap(new HashMap<>());
+    private Map<Integer, Note> notes = Collections.synchronizedMap(new HashMap<>());
+    private Map<String, Set<Integer>> index = Collections.synchronizedMap(new HashMap<>());
 
     @RequestMapping(method = RequestMethod.GET)
-    public Collection<Note> listNotes() {
-        return notes.values();
+    public @ResponseBody Collection<Note> listNotes(@RequestParam(value="query", required=false, defaultValue = "") final String query) {
+        if (query.isEmpty()) {
+            return notes.values();
+        } else {
+            Collection<Note> matchingNotes = new ArrayList<>();
+            Set<Integer> matchingNoteIds = new HashSet<>();
+            final String[] queryWords = query.trim().toLowerCase().split("\\s+");
+            for (final String queryWord : queryWords) {
+                if (index.containsKey(queryWord)) {
+                    matchingNoteIds.addAll(index.get(queryWord));
+                }
+            }
+
+            for (Integer noteId : matchingNoteIds) {
+                matchingNotes.add(notes.get(noteId));
+            }
+            
+            return matchingNotes;
+        }
     }
 
     @RequestMapping(method = RequestMethod.POST)
-    public void createNote(@RequestBody String noteBody) {
+    public @ResponseBody Note createNote(@RequestBody final String noteBody) {
         final int noteId = counter.incrementAndGet();
-        notes.put(noteId, new Note(noteId, noteBody));
+        final Note note = new Note(noteId, noteBody);
+        notes.put(noteId, note);
+
+        final String[] noteWords = noteBody.trim().toLowerCase().split("\\s+");
+        for (final String noteWord : noteWords) {
+            if (index.containsKey(noteWord)) {
+                index.get(noteWord).add(noteId);
+            } else {
+                Set<Integer> indexedNoteIds = new HashSet<>();
+                indexedNoteIds.add(noteId);
+                index.put(noteWord, indexedNoteIds);
+            }
+        }
+
+        return note;
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/{noteId}")
-    public Note getNote(@PathVariable Integer noteId) {
+    public @ResponseBody Note getNote(@PathVariable final Integer noteId) {
         return notes.get(noteId);
     }
 }
