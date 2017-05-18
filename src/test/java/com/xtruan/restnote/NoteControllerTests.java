@@ -21,6 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -37,17 +41,66 @@ public class NoteControllerTests {
     @Autowired
     private MockMvc mockMvc;
 
-    @Test
-    public void testAddNote() throws Exception {
+    private List<String> quotes;
 
-        this.mockMvc.perform(post("/api/notes").content("test note"))
-                .andDo(print())
-                .andExpect(status().isOk());
+    @Before
+    public void initializeNotes() throws Exception {
+
+        quotes = new ArrayList<>();
+        quotes.add("I'm gonna make him an offer he can't refuse.");
+        quotes.add("Toto, I've a feeling we're not in Kansas anymore.");
+        quotes.add("Here's looking at you, kid.");
+        quotes.add("Go ahead, make my day...");
+        quotes.add("May the Force be with you.");
+
+        for (final String quote : quotes) {
+            this.mockMvc.perform(post("/api/notes").content(quote))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.body").value(quote));
+        }
+    }
+
+    @Test
+    public void testGetNotes() throws Exception {
 
         this.mockMvc.perform(get("/api/notes/1"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.body").value("test note"));
+                .andExpect(jsonPath("$.body").value(quotes.get(0)));
+
+        this.mockMvc.perform(get("/api/notes/3"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.body").value(quotes.get(2)));
+    }
+
+    @Test
+    public void testListNotes() throws Exception {
+
+        this.mockMvc.perform(get("/api/notes"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].body").value(quotes.get(0)))
+                .andExpect(jsonPath("$[1].body").value(quotes.get(1)))
+                .andExpect(jsonPath("$[2].body").value(quotes.get(2)))
+                .andExpect(jsonPath("$[3].body").value(quotes.get(3)))
+                .andExpect(jsonPath("$[4].body").value(quotes.get(4)));
+    }
+
+    @Test
+    public void testQueryNotes() throws Exception {
+
+        this.mockMvc.perform(get("/api/notes?query=kansas"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].body").value(quotes.get(1)));
+
+        this.mockMvc.perform(get("/api/notes?query=you"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].body").value(quotes.get(2)))
+                .andExpect(jsonPath("$[1].body").value(quotes.get(4)));
     }
 
 }

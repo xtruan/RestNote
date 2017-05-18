@@ -26,7 +26,7 @@ public class NoteController {
         } else {
             Collection<Note> matchingNotes = new ArrayList<>();
             Set<Integer> matchingNoteIds = new HashSet<>();
-            final String[] queryWords = query.trim().toLowerCase().split("\\s+");
+            final String[] queryWords = splitAndProcessWords(query);
             for (final String queryWord : queryWords) {
                 if (index.containsKey(queryWord)) {
                     matchingNoteIds.addAll(index.get(queryWord));
@@ -36,7 +36,7 @@ public class NoteController {
             for (Integer noteId : matchingNoteIds) {
                 matchingNotes.add(notes.get(noteId));
             }
-            
+
             return matchingNotes;
         }
     }
@@ -47,7 +47,7 @@ public class NoteController {
         final Note note = new Note(noteId, noteBody);
         notes.put(noteId, note);
 
-        final String[] noteWords = noteBody.trim().toLowerCase().split("\\s+");
+        final String[] noteWords = splitAndProcessWords(noteBody);
         for (final String noteWord : noteWords) {
             if (index.containsKey(noteWord)) {
                 index.get(noteWord).add(noteId);
@@ -64,5 +64,9 @@ public class NoteController {
     @RequestMapping(method = RequestMethod.GET, value = "/{noteId}")
     public @ResponseBody Note getNote(@PathVariable final Integer noteId) {
         return notes.get(noteId);
+    }
+
+    private String[] splitAndProcessWords(final String words) {
+        return words.trim().replaceAll("[^a-zA-Z0-9 ]", "").toLowerCase().split("\\s+");
     }
 }
