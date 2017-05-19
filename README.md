@@ -28,7 +28,7 @@ When posting to the `/api/notes` route, a new note will be created.
 Example:
 
 ```shell
-curl -i -H "Content-Type: application/json" -X POST -d 'Be sure to drink your Ovaltine!' http://localhost/api/notes
+curl -i -H "Content-Type: application/json" -X POST -d 'Be sure to drink your Ovaltine!' "http://localhost/api/notes"
 ```
 
 Returns:
@@ -47,7 +47,7 @@ When getting from the `/api/notes/{id}` route, the requested note will be return
 Example:
 
 ```shell
-curl -i -H "Content-Type: application/json" -X GET http://localhost/api/notes/1
+curl -i -H "Content-Type: application/json" -X GET "http://localhost/api/notes/1"
 ```
 
 Returns:
@@ -61,12 +61,12 @@ Returns:
 
 ### Getting all existing notes
 
-When getting from the `/api/notes/` route, all notes will be returned.
+When getting from the `/api/notes` route, all notes will be returned.
 
 Example:
 
 ```shell
-curl -i -H "Content-Type: application/json" -X GET http://localhost/api/notes
+curl -i -H "Content-Type: application/json" -X GET "http://localhost/api/notes"
 ```
 
 Returns:
@@ -91,7 +91,7 @@ There are two query parameters involved in searching notes, `query` and `matchAn
 Example:
 
 ```shell
-curl -i -H "Content-Type: application/json" -X GET http://localhost/api/notes?query=ovaltine
+curl -i -H "Content-Type: application/json" -X GET "http://localhost/api/notes?query=ovaltine"
 ```
 
 Returns:
@@ -108,7 +108,7 @@ Returns:
 Example:
 
 ```shell
-curl -i -H "Content-Type: application/json" -X GET http://localhost/api/notes?query=ovaltine%20gift
+curl -i -H "Content-Type: application/json" -X GET "http://localhost/api/notes?query=ovaltine%20gift"
 ```
 
 Returns:
@@ -120,7 +120,7 @@ Returns:
 Example:
 
 ```shell
-curl -i -H "Content-Type: application/json" -X GET http://localhost/api/notes?query=ovaltine%20gift\&matchAny=true
+curl -i -H "Content-Type: application/json" -X GET "http://localhost/api/notes?query=ovaltine%20gift&matchAny=true"
 ```
 
 Returns:
@@ -141,3 +141,4 @@ Returns:
 ## Test notes
 
 To prepopulate the application with some sample notes, execute the script at `test/populateNotes.sh`. This will post 100 random slogans from the adjacent `slogans.txt` file for easy end-user testing.
+
