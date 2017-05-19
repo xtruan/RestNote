@@ -89,7 +89,7 @@ public class NoteControllerTests {
     }
 
     @Test
-    public void testQueryNotes() throws Exception {
+    public void testQueryNotesOneWord() throws Exception {
 
         this.mockMvc.perform(get("/api/notes?query=kansas"))
                 .andDo(print())
@@ -101,6 +101,23 @@ public class NoteControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].body").value(quotes.get(2)))
                 .andExpect(jsonPath("$[1].body").value(quotes.get(4)));
+    }
+
+    @Test
+    public void testQueryNotesMultipleWords() throws Exception {
+
+        // words are ANDed (default)
+        this.mockMvc.perform(get("/api/notes?query=make him"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].body").value(quotes.get(0)));
+
+        // words are ORed
+        this.mockMvc.perform(get("/api/notes?query=make him&matchAny=true"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].body").value(quotes.get(0)))
+                .andExpect(jsonPath("$[1].body").value(quotes.get(3)));
     }
 
 }
