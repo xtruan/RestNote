@@ -28,12 +28,14 @@ public class NoteController {
 
     /**
      * Function responsible for listing notes. Lists all notes with no argument, searches for notes matching query
-     * if query parameter defined. Treats query terms as if they are ORed.
+     * if query parameter defined. Treats query terms as if they are ANDed unless matchAny is set to true.
      * @param query
+     * @param matchAny
      * @return collection of notes
      */
     @RequestMapping(method = RequestMethod.GET)
-    public @ResponseBody Collection<Note> listNotes(@RequestParam(value="query", required=false, defaultValue = "") final String query) {
+    public @ResponseBody Collection<Note> listNotes(@RequestParam(value="query", required=false, defaultValue = "") final String query,
+                                                    @RequestParam(value="matchAny", required=false, defaultValue = "false") final String matchAny) {
         if (query.isEmpty()) {
             return notes.values();
         } else {
@@ -43,11 +45,20 @@ public class NoteController {
             // get a cleaned up list of words in the query
             final Set<String> queryWords = splitAndProcessWords(query);
 
-            // for each word, see if it is in the index, and add all occurrences to a set
+            // for each word, see if it is in the index
+            boolean firstWord = true;
             for (final String queryWord : queryWords) {
                 if (index.containsKey(queryWord)) {
-                    matchingNoteIds.addAll(index.get(queryWord));
+                    // always add all words found in the index for the first query word
+                    if (firstWord || matchAny.equals("true")) {
+                        // add all occurrences to a set
+                        matchingNoteIds.addAll(index.get(queryWord));
+                     } else {
+                        // keep only items in the set which are already there
+                        matchingNoteIds.retainAll(index.get(queryWord));
+                    }
                 }
+                firstWord = false;
             }
 
             // build a collection of all the matched notes
