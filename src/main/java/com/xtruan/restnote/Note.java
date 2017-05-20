@@ -19,11 +19,11 @@ public class Note {
      * Constructor
      * 
      * @param id
-     * @param content
+     * @param body
      */
-    public Note(final int id, final String content) {
+    public Note(final int id, final String body) {
         this.id = id;
-        this.body = content;
+        this.body = body;
     }
 
     /**

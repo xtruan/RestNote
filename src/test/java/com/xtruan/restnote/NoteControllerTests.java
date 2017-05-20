@@ -27,6 +27,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -41,6 +42,7 @@ public class NoteControllerTests {
     @Autowired
     private MockMvc mockMvc;
 
+    private List<String> quotesJson;
     private List<String> quotes;
 
     @Before
@@ -54,7 +56,9 @@ public class NoteControllerTests {
         quotes.add("May the Force be with you.");
 
         for (final String quote : quotes) {
-            this.mockMvc.perform(post("/api/notes").content(quote))
+            this.mockMvc.perform(post("/api/notes")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content("{ \"body\" : \"" + quote + "\" }"))
                     .andDo(print())
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.body").value(quote));

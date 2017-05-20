@@ -75,14 +75,14 @@ public class NoteController {
      * @param noteBody
      * @return the new note
      */
-    @RequestMapping(method = RequestMethod.POST)
-    public @ResponseBody Note createNote(@RequestBody final String noteBody) {
+    @RequestMapping(method = RequestMethod.POST, consumes = "application/json")
+    public @ResponseBody Note createNote(@RequestBody final Map<String, String> noteBody) {
         final int noteId = counter.incrementAndGet();
-        final Note note = new Note(noteId, noteBody);
+        final Note note = new Note(noteId, noteBody.get("body"));
         notes.put(noteId, note);
 
         // get a cleaned up list of words in the note
-        final Set<String> noteWords = splitAndProcessWords(noteBody);
+        final Set<String> noteWords = splitAndProcessWords(noteBody.get("body"));
 
         // add the words to the index
         for (final String noteWord : noteWords) {
