@@ -23,12 +23,12 @@ The notes API lives at `/api/notes`.
 
 ### Creating a note
 
-When posting to the `/api/notes` route, a new note will be created.
+When posting a JSON object defining a `body` to the `/api/notes` route, a new note will be created.
 
 Example:
 
 ```shell
-curl -i -H "Content-Type: application/json" -X POST -d 'Be sure to drink your Ovaltine!' "http://localhost/api/notes"
+curl -i -H "Content-Type: application/json" -X POST -d '{ "body" : "Be sure to drink your Ovaltine!" }' "http://localhost/api/notes"
 ```
 
 Returns:

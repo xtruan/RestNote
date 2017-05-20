@@ -2,6 +2,10 @@ package com.xtruan.restnote;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -34,10 +38,11 @@ public class NoteController {
      * @return collection of notes
      */
     @RequestMapping(method = RequestMethod.GET)
-    public @ResponseBody Collection<Note> listNotes(@RequestParam(value="query", required=false, defaultValue = "") final String query,
+    public @ResponseBody ResponseEntity<Collection<Note>> listNotes(@RequestParam(value="query", required=false, defaultValue = "") final String query,
                                                     @RequestParam(value="matchAny", required=false, defaultValue = "false") final String matchAny) {
         if (query.isEmpty()) {
-            return notes.values();
+            // return all notes if no query specified
+            return new ResponseEntity<>(notes.values(), HttpStatus.OK);
         } else {
             Collection<Note> matchingNotes = new ArrayList<>();
             Set<Integer> matchingNoteIds = new HashSet<>();
@@ -66,7 +71,7 @@ public class NoteController {
                 matchingNotes.add(notes.get(noteId));
             }
 
-            return matchingNotes;
+            return new ResponseEntity<>(matchingNotes, HttpStatus.OK);
         }
     }
 
@@ -75,8 +80,11 @@ public class NoteController {
      * @param noteBody
      * @return the new note
      */
-    @RequestMapping(method = RequestMethod.POST, consumes = "application/json")
-    public @ResponseBody Note createNote(@RequestBody final Map<String, String> noteBody) {
+    @RequestMapping(method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public @ResponseBody ResponseEntity<Note> createNote(@RequestBody final Map<String, String> noteBody) {
+        if (!noteBody.containsKey("body")) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
         final int noteId = counter.incrementAndGet();
         final Note note = new Note(noteId, noteBody.get("body"));
         notes.put(noteId, note);
@@ -95,7 +103,7 @@ public class NoteController {
             }
         }
 
-        return note;
+        return new ResponseEntity<>(note, HttpStatus.OK);
     }
 
     /**
@@ -103,9 +111,13 @@ public class NoteController {
      * @param noteId
      * @return the note corresponding to the ID
      */
-    @RequestMapping(method = RequestMethod.GET, value = "/{noteId}")
-    public @ResponseBody Note getNote(@PathVariable final Integer noteId) {
-        return notes.get(noteId);
+    @RequestMapping(method = RequestMethod.GET, value = "/{noteId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public @ResponseBody ResponseEntity<Note> getNote(@PathVariable final Integer noteId) {
+        if (!notes.containsKey(noteId)) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } else {
+            return new ResponseEntity<>(notes.get(noteId), HttpStatus.OK);
+        }
     }
 
     /**
