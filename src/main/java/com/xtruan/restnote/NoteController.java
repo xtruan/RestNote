@@ -3,6 +3,9 @@ package com.xtruan.restnote;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.xtruan.restnote.model.Error;
+import com.xtruan.restnote.model.IModel;
+import com.xtruan.restnote.model.Note;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -37,9 +40,11 @@ public class NoteController {
      * @param matchAny
      * @return collection of notes
      */
-    @RequestMapping(method = RequestMethod.GET)
-    public @ResponseBody ResponseEntity<Collection<Note>> listNotes(@RequestParam(value="query", required=false, defaultValue = "") final String query,
-                                                    @RequestParam(value="matchAny", required=false, defaultValue = "false") final String matchAny) {
+    @RequestMapping(method = RequestMethod.GET,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public @ResponseBody ResponseEntity<Collection<Note>> listNotes(
+            @RequestParam(value="query", required=false, defaultValue = "") final String query,
+            @RequestParam(value="matchAny", required=false, defaultValue = "false") final String matchAny) {
         if (query.isEmpty()) {
             // return all notes if no query specified
             return new ResponseEntity<>(notes.values(), HttpStatus.OK);
@@ -80,10 +85,13 @@ public class NoteController {
      * @param noteBody
      * @return the new note
      */
-    @RequestMapping(method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public @ResponseBody ResponseEntity<Note> createNote(@RequestBody final Map<String, String> noteBody) {
+    @RequestMapping(method = RequestMethod.POST,
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public @ResponseBody ResponseEntity<IModel> createNote(@RequestBody final Map<String, String> noteBody) {
         if (!noteBody.containsKey("body")) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new Error(
+                    HttpStatus.BAD_REQUEST.value(), "No 'body' present in request"), HttpStatus.BAD_REQUEST);
         }
         final int noteId = counter.incrementAndGet();
         final Note note = new Note(noteId, noteBody.get("body"));
@@ -111,10 +119,13 @@ public class NoteController {
      * @param noteId
      * @return the note corresponding to the ID
      */
-    @RequestMapping(method = RequestMethod.GET, value = "/{noteId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public @ResponseBody ResponseEntity<Note> getNote(@PathVariable final Integer noteId) {
+    @RequestMapping(method = RequestMethod.GET,
+            value = "/{noteId}",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public @ResponseBody ResponseEntity<IModel> getNote(@PathVariable final Integer noteId) {
         if (!notes.containsKey(noteId)) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new Error(
+                    HttpStatus.BAD_REQUEST.value(), "No note for ID: " + noteId), HttpStatus.BAD_REQUEST);
         } else {
             return new ResponseEntity<>(notes.get(noteId), HttpStatus.OK);
         }

@@ -1,9 +1,9 @@
-package com.xtruan.restnote;
+package com.xtruan.restnote.model;
 
 /**
  * Model for Note objects
  */
-public class Note {
+public class Note implements IModel {
 
     /**
      * Note numeric id
